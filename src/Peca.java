@@ -8,7 +8,7 @@ public class Peca implements Itipopeca {
 
     private int columna;
     private int fila;
-    private char tipus;
+    private final char tipus;
 
     public Peca(char tipus, int fila, int columna) {
         this.tipus = tipus;
