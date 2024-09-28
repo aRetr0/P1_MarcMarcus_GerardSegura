@@ -5,23 +5,29 @@ public class Torns<E> {
 
     public Torns() {
         // TODO
+        llistatTorns = new ArrayList<>();
     }
 
     public Torns(String nomFitxer) {
         // TODO
+
     }
 
     public void afegirTorn(E torn) {
         // TODO
+        llistatTorns.add(torn);
     }
 
     public E agafarPrimerTorn() {
         // TODO
-        return null;
+        E primerTorn;
+        primerTorn = llistatTorns.get(0);
+        return primerTorn;
     }
 
     public void guardarAFitxer(String nomFitxer) {
         // TODO
+
     }
 
     private void carregarDesDeFitxer(String nomFitxer) {
