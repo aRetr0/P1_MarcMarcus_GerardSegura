@@ -24,13 +24,13 @@ public class Jugador<E extends Itipopeca> {
     }
 
     // Mètode per eliminar una peça d'una posició donada
-    public boolean eliminarPecaEnPosicio(int columna, int fila) {
+    public boolean eliminarPecaEnPosicio(int columna, int fila) throws FiJocException {
         E peca = buscarEnPosicio(fila, columna);
         if (peca == null) {
             return false;
         }
         if (peca.fiJoc()) {
-            throw new FiJocException("El rei ha estat eliminat");
+            throw new FiJocException();
         }
         return pecesVives.remove(peca);
     }

@@ -1,10 +1,10 @@
 public class Peca implements Itipopeca {
-    public final char PEO = 'P';
-    public final char TORRE = 'T';
-    public final char CAVALL = 'C';
-    public final char ALFIL = 'A';
-    public final char REINA = 'Q';
-    public final char REI = 'K';
+    public static final char PEO = 'P';
+    public static final char TORRE = 'T';
+    public static final char CAVALL = 'C';
+    public static final char ALFIL = 'A';
+    public static final char REINA = 'Q';
+    public static final char REI = 'K';
     private final char tipus;
     private int columna;
     private int fila;
