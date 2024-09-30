@@ -5,10 +5,9 @@ public class Peca implements Itipopeca {
     public final char ALFIL = 'A';
     public final char REINA = 'Q';
     public final char REI = 'K';
-
+    private final char tipus;
     private int columna;
     private int fila;
-    private final char tipus;
 
     public Peca(char tipus, int fila, int columna) {
         this.tipus = tipus;
@@ -33,7 +32,7 @@ public class Peca implements Itipopeca {
 
     @Override
     public void setPosicio(int fila, int columna) throws RuntimeException {
-        if (fila < 0 || fila > 7 || columna < 0 || columna > 7){
+        if (fila < 0 || fila > 7 || columna < 0 || columna > 7) {
             throw new RuntimeException("Posició incorrecta");
         }
         this.fila = fila;
