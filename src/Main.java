@@ -173,11 +173,11 @@ public class Main {
             }
         }
 
-        for (Peca peca : blanc.getPecesVives()) {
+        for (Peca peca : blanc.pecesVives()) {
             tauler[peca.getFila()][peca.getColumna()] = peca.getTipus();
         }
 
-        for (Peca peca : negre.getPecesVives()) {
+        for (Peca peca : negre.pecesVives()) {
             tauler[peca.getFila()][peca.getColumna()] = Character.toLowerCase(peca.getTipus());
         }
 
