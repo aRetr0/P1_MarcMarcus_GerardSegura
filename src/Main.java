@@ -141,11 +141,19 @@ public class Main {
         }
 
         for (int i = 7; i >= 0; i--) {
+            System.out.print((i + 1) + "| "); // Coordenada de fila
             for (int j = 0; j < 8; j++) {
-                System.out.print(tauler[i][j] + " ");
+                if (i == 0) System.out.print("\u0332" + tauler[i][j] + " ");
+                else
+                    System.out.print(tauler[i][j] + " ");
             }
             System.out.println();
         }
+        System.out.print(" | "); // Espai per a l'alineació de les coordenades de columna
+        for (char c = 'A'; c <= 'H'; c++) {
+            System.out.print(c + " ");
+        }
+        System.out.println();
     }
 
     private ArrayList<Peca> iniciarJocBlancas() {
