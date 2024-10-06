@@ -26,6 +26,9 @@ public class Torns {
 
     // Guarda tots els torns de la partida en un fitxer del tipus txt
     public void guardarAFitxer(String nomFitxer) throws IOException {
+        if (nomFitxer == null || nomFitxer.isEmpty()) {
+            throw new IllegalArgumentException("El nom del fitxer no pot ser nul o buit");
+        }
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(nomFitxer))) {
             for (String torn : llistatTorns) {
                 writer.write(torn);
@@ -40,11 +43,14 @@ public class Torns {
         if (llistatTorns.isEmpty()) {
             throw new NoSuchElementException("No hi ha més torns");
         }
-        return llistatTorns.remove(0);
+        return llistatTorns.removeFirst();
     }
 
     // Mètode privat que llegeix un fitxer txt i inicialitza el llistat de torns
     private void carregarDesDeFitxer(String nomFitxer) throws IOException {
+        if (nomFitxer == null || nomFitxer.isEmpty()) {
+            throw new IllegalArgumentException("El nom del fitxer no pot ser nul o buit");
+        }
         try (BufferedReader reader = new BufferedReader(new FileReader(nomFitxer))) {
             String linia;
             while ((linia = reader.readLine()) != null) {
