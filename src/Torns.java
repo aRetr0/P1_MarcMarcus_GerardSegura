@@ -2,8 +2,8 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
-public class Torns<E> {
-    private final ArrayList<E> llistatTorns;
+public class Torns {
+    private final ArrayList<String> llistatTorns;
 
     // Constructor per defecte que inicialitza el llistat de torns
     public Torns() {
@@ -20,26 +20,27 @@ public class Torns<E> {
     }
 
     // Afegeix un torn a l'última posició del llistat
-    public void afegirTorn(E torn) {
+    public void afegirTorn(String torn) {
         llistatTorns.add(torn);
     }
 
     // Guarda tots els torns de la partida en un fitxer del tipus txt
     public void guardarAFitxer(String nomFitxer) throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(nomFitxer))) {
-            for (E torn : llistatTorns) {
-                writer.write(torn.toString());
+            for (String torn : llistatTorns) {
+                writer.write(torn);
                 writer.newLine();
             }
+            System.out.println("Torns guardats al fitxer: " + llistatTorns); // Debug statement
         }
     }
 
     // Elimina i retorna el primer element del llistat
-    public E agafarPrimerTorn() {
+    public String agafarPrimerTorn() {
         if (llistatTorns.isEmpty()) {
             throw new NoSuchElementException("No hi ha més torns");
         }
-        return llistatTorns.removeFirst();
+        return llistatTorns.remove(0);
     }
 
     // Mètode privat que llegeix un fitxer txt i inicialitza el llistat de torns
@@ -47,10 +48,7 @@ public class Torns<E> {
         try (BufferedReader reader = new BufferedReader(new FileReader(nomFitxer))) {
             String linia;
             while ((linia = reader.readLine()) != null) {
-                // Suposant que E té un constructor que accepta una cadena
-                // Això pot necessitar ser ajustat segons la implementació de E
-                E torn = (E) new Object(); // TODO: Placeholder, caldrà ajustar segons E
-                llistatTorns.add(torn);
+                llistatTorns.add(linia);
             }
         }
     }

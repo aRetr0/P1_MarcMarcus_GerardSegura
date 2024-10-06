@@ -17,8 +17,15 @@ public class Main {
             System.out.println("2. Reproduir una partida des d'un fitxer");
             System.out.println("3. Sortir");
             System.out.print("Selecciona una opció: ");
+
+            if (!scanner.hasNextInt()) {
+                System.out.println("Entrada no vàlida. Torna a intentar-ho.");
+                scanner.next(); // neteja el input invalid
+                continue;
+            }
+
             int opcio = scanner.nextInt();
-            scanner.nextLine();
+            scanner.nextLine(); // consumeix la línia en blanc
 
             switch (opcio) {
                 case 1:
@@ -39,44 +46,87 @@ public class Main {
     private void jugarNovaPartida() {
         ArrayList<Peca> pecesBlanques = iniciarJocBlancas();
         ArrayList<Peca> pecesNegres = iniciarJocNegras();
-        Jugador<Peca> blanc = new Jugador<>(pecesBlanques);
-        Jugador<Peca> negre = new Jugador<>(pecesNegres);
-        Torns<String> torns = new Torns<>();
+        Jugador<Peca> jugadorBlanc = new Jugador<>(pecesBlanques);
+        Jugador<Peca> jugadorNegre = new Jugador<>(pecesNegres);
+        Torns torns = new Torns();
+        boolean fiPartida = false;
+        boolean tornBlanc = true; // Comença el jugador blanc
 
-        while (true) {
-            mostrarTauler(blanc, negre);
-            System.out.print("Introdueix el torn del jugador blanc (ex: E2 E4): ");
-            String tornBlanc = scanner.nextLine();
-            try {
-                tornToPosition(tornBlanc, blanc, negre);
-                torns.afegirTorn(tornBlanc);
-            } catch (FiJocException e) {
-                System.out.println(e.getMessage());
-                break;
-            }
+        while (!fiPartida) {
+            mostrarTauler(jugadorBlanc, jugadorNegre);
 
-            mostrarTauler(blanc, negre);
-            System.out.print("Introdueix el torn del jugador negre (ex: E7 E5): ");
-            String tornNegre = scanner.nextLine();
-            try {
-                tornToPosition(tornNegre, negre, blanc);
-                torns.afegirTorn(tornNegre);
-            } catch (FiJocException e) {
-                System.out.println(e.getMessage());
-                break;
+            Jugador<Peca> jugadorActual = tornBlanc ? jugadorBlanc : jugadorNegre;
+            Jugador<Peca> oponent = tornBlanc ? jugadorNegre : jugadorBlanc;
+            String colorJugador = tornBlanc ? "blanc" : "negre";
+
+            System.out.print("Introdueix el torn del jugador " + colorJugador + " (ex: E2 E4) o 'fi' per acabar: ");
+            String torn = scanner.nextLine();
+
+            if (torn.equalsIgnoreCase("fi")) {
+                System.out.println("Partida finalitzada per decisió del jugador.");
+                fiPartida = true;
+            } else {
+                try {
+                    if (tornToPosition(torn, jugadorActual, oponent)) {
+                        torns.afegirTorn(torn); // Afegir el torn a l'objecte Torns
+                        tornBlanc = !tornBlanc; // Canvia el torn
+                    }
+                } catch (FiJocException e) {
+                    torns.afegirTorn(torn); // Afegir l'últim torn abans de finalitzar
+                    System.out.println(e.getMessage());
+                    mostrarTauler(jugadorBlanc, jugadorNegre); // Mostrar el tauler final
+                    fiPartida = true;
+                } catch (Exception e) {
+                    System.out.println("Error: " + e.getMessage());
+                }
             }
         }
 
         try {
             torns.guardarAFitxer("partida.txt");
+            System.out.println("Partida guardada a 'partida.txt'");
         } catch (IOException e) {
             System.out.println("Error al guardar la partida: " + e.getMessage());
         }
     }
 
+    private boolean tornToPosition(String torn, Jugador<Peca> p1, Jugador<Peca> p2) throws RuntimeException {
+        String[] parts = torn.split(" ");
+        if (parts.length != 2) {
+            System.out.println("Format de torn invàlid. Utilitza el format 'E2 E4'.");
+            return false;
+        }
+
+        int columnaAnterior = Character.toUpperCase(parts[0].charAt(0)) - 'A';
+        int filaAnterior = Character.getNumericValue(parts[0].charAt(1)) - 1;
+        int columnaNova = Character.toUpperCase(parts[1].charAt(0)) - 'A';
+        int filaNova = Character.getNumericValue(parts[1].charAt(1)) - 1;
+
+        if (columnaAnterior < 0 || columnaAnterior > 7 || filaAnterior < 0 || filaAnterior > 7 || columnaNova < 0 || columnaNova > 7 || filaNova < 0 || filaNova > 7) {
+            System.out.println("Posició fora del tauler. Intenta-ho de nou.");
+            return false;
+        }
+
+        // Verifica si hi ha una peça a la posició inicial
+        if (!p1.hiHaPecaA(columnaAnterior, filaAnterior)) {
+            System.out.println("No hi ha cap peça a la posició inicial.");
+            return false;
+        }
+
+        boolean movimentReeixit = p1.mourePeca(columnaAnterior, filaAnterior, columnaNova, filaNova);
+        if (movimentReeixit) {
+            if (p2.hiHaPecaA(columnaNova, filaNova)) {
+                p2.eliminarPecaEnPosicio(columnaNova, filaNova);
+            }
+            return true;
+        } else {
+            System.out.println("Moviment no vàlid per a aquesta peça.");
+            return false;
+        }
+    }
 
     private void reproduirPartida() {
-        Torns<String> torns = llegirTorns();
+        Torns torns = llegirTorns();
         ArrayList<Peca> pecesBlanques = iniciarJocBlancas();
         ArrayList<Peca> pecesNegres = iniciarJocNegras();
         Jugador<Peca> blanc = new Jugador<>(pecesBlanques);
@@ -84,6 +134,7 @@ public class Main {
 
         while (true) {
             mostrarTauler(blanc, negre);
+            System.out.println();
             try {
                 String tornBlanc = torns.agafarPrimerTorn();
                 tornToPosition(tornBlanc, blanc, negre);
@@ -92,36 +143,26 @@ public class Main {
                 String tornNegre = torns.agafarPrimerTorn();
                 tornToPosition(tornNegre, negre, blanc);
                 mostrarTauler(blanc, negre);
+                System.out.println();
             } catch (NoSuchElementException e) {
                 System.out.println("Partida finalitzada.");
                 break;
+            } catch (IllegalArgumentException e) {
+                System.out.println("Torn invàlid: " + e.getMessage());
+                continue;
             }
         }
     }
 
-    private Torns<String> llegirTorns() {
+    private Torns llegirTorns() {
         System.out.print("Introdueix el nom del fitxer: ");
         String nomFitxer = scanner.nextLine();
         try {
-            return new Torns<>(nomFitxer);
+            return new Torns(nomFitxer);
         } catch (IOException e) {
             System.out.println("Error al llegir el fitxer: " + e.getMessage());
             return llegirTorns();
         }
-    }
-
-    private void tornToPosition(String torn, Jugador<Peca> p1, Jugador<Peca> p2) {
-        String[] parts = torn.split(" ");
-        if (parts.length != 2) {
-            throw new IllegalArgumentException("Torn invàlid");
-        }
-        int columnaAnterior = parts[0].charAt(0) - 'A';
-        int filaAnterior = parts[0].charAt(1) - '1';
-        int columnaNova = parts[1].charAt(0) - 'A';
-        int filaNova = parts[1].charAt(1) - '1';
-
-        p1.mourePeca(columnaAnterior, filaAnterior, columnaNova, filaNova);
-        p2.eliminarPecaEnPosicio(columnaNova, filaNova);
     }
 
     private void mostrarTauler(Jugador<Peca> blanc, Jugador<Peca> negre) {
@@ -143,9 +184,11 @@ public class Main {
         for (int i = 7; i >= 0; i--) {
             System.out.print((i + 1) + "| "); // Coordenada de fila
             for (int j = 0; j < 8; j++) {
-                if (i == 0) System.out.print("\u0332" + tauler[i][j] + " ");
-                else
+                if (i == 0) {
+                    System.out.print("\u001B[4m" + tauler[i][j] + "\u001B[0m "); // Underline the character
+                } else {
                     System.out.print(tauler[i][j] + " ");
+                }
             }
             System.out.println();
         }
