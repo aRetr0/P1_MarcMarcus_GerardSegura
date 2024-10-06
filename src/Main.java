@@ -9,23 +9,14 @@ public class Main {
     public static void main(String[] args) {
         Main main = new Main();
         main.mostrarMenu();
+        main.scanner.close(); // Close the Scanner resource
     }
 
     private void mostrarMenu() {
         while (true) {
-            System.out.println("1. Jugar una partida nova");
-            System.out.println("2. Reproduir una partida des d'un fitxer");
-            System.out.println("3. Sortir");
-            System.out.print("Selecciona una opció: ");
-
-            if (!scanner.hasNextInt()) {
-                System.out.println("Entrada no vàlida. Torna a intentar-ho.");
-                scanner.next(); // neteja el input invalid
-                continue;
-            }
-
-            int opcio = scanner.nextInt();
-            scanner.nextLine(); // consumeix la línia en blanc
+            mostrarOpcionsMenu();
+            int opcio = llegirOpcioMenu();
+            if (opcio == -1) continue;
 
             switch (opcio) {
                 case 1:
@@ -43,6 +34,24 @@ public class Main {
         }
     }
 
+    private void mostrarOpcionsMenu() {
+        System.out.println("1. Jugar una partida nova");
+        System.out.println("2. Reproduir una partida des d'un fitxer");
+        System.out.println("3. Sortir");
+        System.out.print("Selecciona una opció: ");
+    }
+
+    private int llegirOpcioMenu() {
+        if (!scanner.hasNextInt()) {
+            System.out.println("Entrada no vàlida. Torna a intentar-ho.");
+            scanner.next(); // Clear invalid input
+            return -1;
+        }
+        int opcio = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
+        return opcio;
+    }
+
     private void jugarNovaPartida() {
         ArrayList<Peca> pecesBlanques = iniciarJocBlancas();
         ArrayList<Peca> pecesNegres = iniciarJocNegras();
@@ -54,34 +63,43 @@ public class Main {
 
         while (!fiPartida) {
             mostrarTauler(jugadorBlanc, jugadorNegre);
-
-            Jugador<Peca> jugadorActual = tornBlanc ? jugadorBlanc : jugadorNegre;
-            Jugador<Peca> oponent = tornBlanc ? jugadorNegre : jugadorBlanc;
-            String colorJugador = tornBlanc ? "blanc" : "negre";
-
-            System.out.print("Introdueix el torn del jugador " + colorJugador + " (ex: E2 E4) o 'fi' per acabar: ");
-            String torn = scanner.nextLine();
-
-            if (torn.equalsIgnoreCase("fi")) {
-                System.out.println("Partida finalitzada per decisió del jugador.");
-                fiPartida = true;
-            } else {
-                try {
-                    if (tornToPosition(torn, jugadorActual, oponent)) {
-                        torns.afegirTorn(torn); // Afegir el torn a l'objecte Torns
-                        tornBlanc = !tornBlanc; // Canvia el torn
-                    }
-                } catch (FiJocException e) {
-                    torns.afegirTorn(torn); // Afegir l'últim torn abans de finalitzar
-                    System.out.println(e.getMessage());
-                    mostrarTauler(jugadorBlanc, jugadorNegre); // Mostrar el tauler final
-                    fiPartida = true;
-                } catch (Exception e) {
-                    System.out.println("Error: " + e.getMessage());
-                }
-            }
+            fiPartida = processarTorn(jugadorBlanc, jugadorNegre, torns, tornBlanc);
+            tornBlanc = !tornBlanc; // Canvia el torn
         }
 
+        guardarPartida(torns);
+    }
+
+    private boolean processarTorn(Jugador<Peca> jugadorBlanc, Jugador<Peca> jugadorNegre, Torns torns, boolean tornBlanc) {
+        Jugador<Peca> jugadorActual = tornBlanc ? jugadorBlanc : jugadorNegre;
+        Jugador<Peca> oponent = tornBlanc ? jugadorNegre : jugadorBlanc;
+        String colorJugador = tornBlanc ? "blanc" : "negre";
+
+        System.out.print("Introdueix el torn del jugador " + colorJugador + " (ex: E2 E4) o 'fi' per acabar: ");
+        String torn = scanner.nextLine();
+
+        if (torn.equalsIgnoreCase("fi")) {
+            System.out.println("Partida finalitzada per decisió del jugador.");
+            return true;
+        } else {
+            try {
+                if (tornToPosition(torn, jugadorActual, oponent)) {
+                    torns.afegirTorn(torn); // Afegir el torn a l'objecte Torns
+                    return false;
+                }
+            } catch (FiJocException e) {
+                torns.afegirTorn(torn); // Afegir l'últim torn abans de finalitzar
+                System.out.println(e.getMessage());
+                mostrarTauler(jugadorBlanc, jugadorNegre); // Mostrar el tauler final
+                return true;
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        }
+        return false;
+    }
+
+    private void guardarPartida(Torns torns) {
         try {
             torns.guardarAFitxer("partida.txt");
             System.out.println("Partida guardada a 'partida.txt'");
@@ -149,7 +167,6 @@ public class Main {
                 break;
             } catch (IllegalArgumentException e) {
                 System.out.println("Torn invàlid: " + e.getMessage());
-                continue;
             }
         }
     }
@@ -200,38 +217,32 @@ public class Main {
     }
 
     private ArrayList<Peca> iniciarJocBlancas() {
-        ArrayList<Peca> pecesBlanques = new ArrayList<>();
-        // Afegir peons blancs
-        for (int i = 0; i < 8; i++) {
-            pecesBlanques.add(new Peca(Peca.PEO, 1, i));
-        }
-        // Afegir altres peces blanques
-        pecesBlanques.add(new Peca(Peca.TORRE, 0, 0));
-        pecesBlanques.add(new Peca(Peca.CAVALL, 0, 1));
-        pecesBlanques.add(new Peca(Peca.ALFIL, 0, 2));
-        pecesBlanques.add(new Peca(Peca.REINA, 0, 3));
-        pecesBlanques.add(new Peca(Peca.REI, 0, 4));
-        pecesBlanques.add(new Peca(Peca.ALFIL, 0, 5));
-        pecesBlanques.add(new Peca(Peca.CAVALL, 0, 6));
-        pecesBlanques.add(new Peca(Peca.TORRE, 0, 7));
-        return pecesBlanques;
+        return iniciarJoc("blanc");
     }
 
     private ArrayList<Peca> iniciarJocNegras() {
-        ArrayList<Peca> pecesNegres = new ArrayList<>();
-        // Afegir peons negres
+        return iniciarJoc("negre");
+    }
+
+    private ArrayList<Peca> iniciarJoc(String color) {
+        ArrayList<Peca> peces = new ArrayList<>();
+        int filaPeons = color.equals("blanc") ? 1 : 6;
+        int filaAltres = color.equals("blanc") ? 0 : 7;
+
+        // Afegir peons
         for (int i = 0; i < 8; i++) {
-            pecesNegres.add(new Peca(Peca.PEO, 6, i));
+            peces.add(new Peca(Peca.PEO, filaPeons, i));
         }
-        // Afegir altres peces negres
-        pecesNegres.add(new Peca(Peca.TORRE, 7, 0));
-        pecesNegres.add(new Peca(Peca.CAVALL, 7, 1));
-        pecesNegres.add(new Peca(Peca.ALFIL, 7, 2));
-        pecesNegres.add(new Peca(Peca.REINA, 7, 3));
-        pecesNegres.add(new Peca(Peca.REI, 7, 4));
-        pecesNegres.add(new Peca(Peca.ALFIL, 7, 5));
-        pecesNegres.add(new Peca(Peca.CAVALL, 7, 6));
-        pecesNegres.add(new Peca(Peca.TORRE, 7, 7));
-        return pecesNegres;
+        // Afegir altres peces
+        peces.add(new Peca(Peca.TORRE, filaAltres, 0));
+        peces.add(new Peca(Peca.CAVALL, filaAltres, 1));
+        peces.add(new Peca(Peca.ALFIL, filaAltres, 2));
+        peces.add(new Peca(Peca.REINA, filaAltres, 3));
+        peces.add(new Peca(Peca.REI, filaAltres, 4));
+        peces.add(new Peca(Peca.ALFIL, filaAltres, 5));
+        peces.add(new Peca(Peca.CAVALL, filaAltres, 6));
+        peces.add(new Peca(Peca.TORRE, filaAltres, 7));
+
+        return peces;
     }
 }
