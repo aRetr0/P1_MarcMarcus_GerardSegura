@@ -5,14 +5,15 @@ public class Peca implements Itipopeca {
     public static final char ALFIL = 'A';
     public static final char REINA = 'Q';
     public static final char REI = 'K';
+
     private final char tipus;
     private int columna;
     private int fila;
 
     public Peca(char tipus, int fila, int columna) {
+        checkTipus(tipus); // Validate piece type
         this.tipus = tipus;
-        this.fila = fila;
-        this.columna = columna;
+        setPosicio(fila, columna); // Validate position
     }
 
     @Override
@@ -31,9 +32,9 @@ public class Peca implements Itipopeca {
     }
 
     @Override
-    public void setPosicio(int fila, int columna) throws RuntimeException {
+    public void setPosicio(int fila, int columna) {
         if (fila < 0 || fila > 7 || columna < 0 || columna > 7) {
-            throw new RuntimeException("Posició incorrecta");
+            throw new IllegalArgumentException("Posició incorrecta: fila i columna han d'estar entre 0 i 7.");
         }
         this.fila = fila;
         this.columna = columna;
@@ -46,15 +47,28 @@ public class Peca implements Itipopeca {
 
     private void checkTipus(char tipus) {
         if (tipus != PEO && tipus != TORRE && tipus != CAVALL && tipus != ALFIL && tipus != REINA && tipus != REI) {
-            throw new RuntimeException("Tipus de peça incorrecte");
+            throw new IllegalArgumentException("Tipus de peça incorrecte: " + tipus);
         }
     }
 
+    @Override
     public String toString() {
         return "Peca [tipus=" + tipus + ", fila=" + fila + ", columna=" + columna + "]";
     }
 
-    public boolean equals(Peca p) {
-        return this.tipus == p.tipus && this.fila == p.fila && this.columna == p.columna;
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Peca peca = (Peca) obj;
+        return tipus == peca.tipus && columna == peca.columna && fila == peca.fila;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Character.hashCode(tipus);
+        result = 31 * result + Integer.hashCode(columna);
+        result = 31 * result + Integer.hashCode(fila);
+        return result;
     }
 }
